@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "youtube-utils"
+version = "0.1.0"
+description = ""
+authors = ["Danny-Dasilva <dannydasilva.solutions@gmail.com>"]
+readme = "README.md"
+packages = [{include = "youtube_utils"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+google-api-python-client = "^2.80.0"
+google-auth-httplib2 = "^0.1.0"
+google-auth-oauthlib = "^1.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
