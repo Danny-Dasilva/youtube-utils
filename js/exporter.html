@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <h1>Instructions</h1>
+    <h1>
+        Please make sure you have disabled CORS in your browser, if you don't know how to do it, follow these steps:
+    </h1>
+    <P>
+        the reason we need to disable CORS is because the youtube api doesn't allow cross origin requests, and we need
+        to
+    </P>
+    <p>Search for chrome in your start menu</p>
+    <p>Locate it's exe file</p>
+    <p>
+        open a command prompt in the same directory as the exe file, and run this command "chrome.exe
+        --disable-web-security --disable-gpu
+        --user-data-dir=~/chromeTemp"
+    </p>
+    <p>1. Go to <a href="https://www.youtube.com/feed/channels">https://www.youtube.com/feed/channels</a></p>
+    <p>2. Open the console (F12)</p>
+    <p>3. Paste the code in the console</p>
+    <pre lang="js">
+        console.clear();
+        const channels = Array.from( document.querySelectorAll("div > #info-section > .channel-link"))
+        const channelUrls = channels.map(c => c.href);
+        console.log(channelUrls);
+    </pre>
+    <p>4. Press enter</p>
+    <p>5. Copy the array of urls</p>
+    <p>6. Paste the array of urls in the input</p>
+    <label for="urls">
+        JSON array of urls "strings "
+    </label>
+    <input type="text" id="urls" value="" />
+    <p>
+        Now we need the access token, to get it, follow these steps:
+    </p>
+    <p>1. Go to <a
+            href="https://developers.google.com/youtube/v3/docs/subscriptions/insert?apix=true&apix_params=%7B%22part%22%3A%5B%22snippet%22%5D%2C%22resource%22%3A%7B%22snippet%22%3A%7B%22resourceId%22%3A%7B%22kind%22%3A%22youtube%23channel%22%2C%22channelId%22%3A%22UC_x5XG1OV2P6uZZ5FSM9Ttw%22%7D%7D%7D%7D/">
+            https://developers.google.com/youtube/v3/docs/subscriptions/insert?apix=true&apix_params={"part":["snippet"],"resource":{"snippet":{"resourceId":{"kind":"youtube#channel","channelId":"UC_x5XG1OV2P6uZZ5FSM9Ttw"}}}}
+        </a></p>
+
+    <p>2. Open the console (F12)</p>
+    <p>3. Inspect the network tab</p>
+    <p>4. Click on the "Execute" button</p>
+    <p>5. You be asked to login, login with account you want to subscribe with</p>
+    <p>6. Search for "https://content-youtube.googleapis.com/youtube/v3/subscriptions" in the network tab</p>
+    <p>7. Copy the access token from headers
+        It's under "Authorization" header looks like this "Bearer {token}"</p>
+    <p>8. Paste the access token, that is {token} in the input</p>
+    <input type="text" id="accessToken" value="" />
+
+    <script>
+        const channelUrls = document.querySelector("#urls").value;
+        const accessTokenInput = document.querySelector("#accessToken");
+        const s = JSON.stringify(channelUrls);
+        // Google genreal Api key, 
+        // You can find it by inspecting the network tab of your browser, and search for this url https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest
+        // the key is in the query string named "key"
+        const apiKey = "AIzaSyAa8yy0GdcGPHdtD083HiGGx_S0vMPScDM",
+            accessToken = accessTokenInput.value;
+        /**
+         * POST https://youtube.googleapis.com/youtube/v3/subscriptions?part=snippet&key=[YOUR_API_KEY] HTTP/1.1
+    
+    Authorization: Bearer [YOUR_ACCESS_TOKEN]
+    Accept: application/json
+    Content-Type: application/json
+    
+    {
+    "snippet": {
+    "resourceId": {
+    
+    
+    }
+    }
+    }
+         */
+        const userType = async (id, type) => {
+            const url = new URL("https://youtube.googleapis.com/youtube/v3/channels");
+            url.searchParams.append("part", "snippet");
+            url.searchParams.append("contentDetails", "statistics");
+            url.searchParams.append("forUsername", id);
+            url.searchParams.append("key", apiKey);
+            const data = await (ffetch(url, undefined, "GET").then(res => res.json()));
+            return data.items[0].id;
+        }
+        const subscribe = async (url) => {
+            let id = url.split("/").pop();
+            let type = url.split("/")[3];
+            if (type === "user") id = await userType(id, type);
+
+            const body = {
+                "snippet": {
+                    "resourceId": {
+                        "channelId": id,
+                        "kind": "youtube#channel"
+                    }
+                }
+            }
+            const urlE = new URL("https://youtube.googleapis.com/youtube/v3/subscriptions");
+            urlE.searchParams.append("part", "snippet");
+            urlE.searchParams.append("key", apiKey);
+            return await ffetch(urlE, JSON.stringify(body), "POST");
+        }
+        async function ffetch(url, body, m) {
+            const h = new Headers();
+            h.append("Authorization", "Bearer " + accessToken);
+            h.append("Accept", "application/json");
+            h.append("Content-Type", "application/json");
+            h.append("referrer", "https://content-youtube.googleapis.com/static/proxy.html?usegapi=1&jsh=m;/_/scs/abc-static/_/js/k=gapi.lb.en.Oupypiulh58.O/d=1/rs=AHpOoo_CVmSAWqMsGCHgMRyaSvlE8hY6sw/m=__features__");
+            h.append("sec-fetch-dest", "empty");
+            h.append("sec-fetch-mode", "cors");
+            h.append("sec-fetch-site", "same-origin");
+            h.append("sec-gpc", "1");
+            h.append("pragma", "no-cache");
+            h.append("cache-control", "no-cache");
+            h.append("te", "trailers");
+            h.append("accept-language", "en-US,en;q=0.5");
+            h.append("accept-encoding", "gzip, deflate, br");
+            h.append("x-requested-with", "XMLHttpRequest");
+            h.append("x-javascript-user-agent", "apix/3.0.0 google-api-javascript-client/1.1.0");
+            h.append("x-origin", "https://explorer.apis.google.com");
+            h.append("x-referer", "https://explorer.apis.google.com");
+            h.append("x-goog-encode-response-if-executable", "base64");
+            h.append("origin", "https://content-youtube.googleapis.com");
+            h.append("dnt", "1");
+            h.append("alt-used", "content-youtube.googleapis.com");
+            h.append("connection", "keep-alive");
+            return await fetch(url, {
+                headers: h, method: m,
+                body
+            })
+        }
+        async function wait(ms) {
+            return new Promise(resolve => {
+                setTimeout(resolve, ms);
+            });
+        }
+        window.breakLoop = false;
+        async function execute() {
+            for (let i = 0; i < s.length; i++) {
+                const url = s[i];
+                await wait(500);
+                try {
+                    const r = await subscribe(url);
+                    console.log(r.status);
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+        }
+    </script>
+    <button onclick="execute()">Subscribe</button>
+</body>
+
+</html>
